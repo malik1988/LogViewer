@@ -42,15 +42,16 @@ class LogViewer(ui_mainwindow, qtbaseclass):
                         count += 1
 
     def init_table(self):
-        model = QStandardItemModel(self.tableView)
+        self.model = QStandardItemModel(self.tableView)
 
-        model.setColumnCount(len(self.header))
+        # model.setColumnCount(len(self.header))
+        # for i, value in enumerate(self.header):
+        #     model.setHeaderData(i, QtCore.Qt.Horizontal, value)
 
-        for i, value in enumerate(self.header):
-            model.setHeaderData(i, QtCore.Qt.Horizontal, value)
+        # 通过list/tuple设置表头
+        self.model.setHorizontalHeaderLabels(self.header)
 
-        self.model = model
-        self.tableView.setModel(model)
+        self.tableView.setModel(self.model)
         # 设置表格只读
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置表格按行选择
