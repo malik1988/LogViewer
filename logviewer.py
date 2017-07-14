@@ -1,5 +1,5 @@
 #coding: utf-8
-from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QTextBrowser
+from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QTextBrowser, QHeaderView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5 import QtCore
 
@@ -28,6 +28,7 @@ class LogViewer(ui_mainwindow, qtbaseclass):
         file, state = QFileDialog.getOpenFileName(self, '打开日志文件', './',
                                                   '日志文件(*.log)')
         count = 0
+        lines = ''
         if state:
             with open(file, 'r', encoding='utf-8') as f:
                 while True:
@@ -35,19 +36,21 @@ class LogViewer(ui_mainwindow, qtbaseclass):
                     if not line:
                         break
                     if ' - ' in line:
-                        # 找到一行有效的日志记录
-                        record = line.split(' - ')
-                        for i, value in enumerate(record):
-                            self.model.setItem(count, i, QStandardItem(value))
-                        count += 1
+                        # 找到一行有效的日志记录的起始行，同时下一条记录的起始行作为上一条记录的终止行+
+                        if lines:
+                            record = lines.split(' - ')
+                            for i, value in enumerate(record):
+                                self.model.setItem(count, i,
+                                                   QStandardItem(value))
+                            count += 1
+                        # 记该行为一条记录的起始行
+                        lines = line
+                    else:
+                        # 一条记录可能有多行
+                        lines += line
 
     def init_table(self):
         self.model = QStandardItemModel(self.tableView)
-
-        # model.setColumnCount(len(self.header))
-        # for i, value in enumerate(self.header):
-        #     model.setHeaderData(i, QtCore.Qt.Horizontal, value)
-
         # 通过list/tuple设置表头
         self.model.setHorizontalHeaderLabels(self.header)
 
@@ -56,6 +59,10 @@ class LogViewer(ui_mainwindow, qtbaseclass):
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置表格按行选择
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 设置表格自动填充
+        self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.horizontalHeader().setSectionResizeMode(
+            QHeaderView.Stretch)
 
     def slot_table_pressed(self, index):
         '''表格点击事件'''
